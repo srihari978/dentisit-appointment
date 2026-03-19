@@ -1,179 +1,199 @@
-import { useState, useEffect } from "react";
-import Navbar from "../components/Navbar";
-import API from "../api/authApi";
+import { useEffect, useState } from "react";
+import AdminNavbar from "../components/AdminNavbar";
 
 export default function Admin() {
   const [doctors, setDoctors] = useState([]);
 
-  // Doctor form
-  const [doctor, setDoctor] = useState({
-    name: "",
-    qualification: "",
-    experience: ""
-  });
+  const [name, setName] = useState("");
+  const [qualification, setQualification] = useState("");
+  const [experience, setExperience] = useState("");
+  const [photo, setPhoto] = useState(""); // ✅ NEW
 
-  // Slot form
-  const [slot, setSlot] = useState({
-    doctorId: "",
-    slot_date: "",
-    slot_time: ""
-  });
+  const [doctorId, setDoctorId] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
 
-  // Fetch all doctors on mount
+  // 🔄 Fetch doctors
+  const fetchDoctors = () => {
+    fetch("http://localhost:5000/api/admin/doctors")
+      .then(res => res.json())
+      .then(data => setDoctors(data));
+  };
+
   useEffect(() => {
     fetchDoctors();
   }, []);
 
-  const fetchDoctors = async () => {
-    try {
-      const res = await API.get("/doctors");
-      setDoctors(res.data);
-    } catch (err) {
-      alert("Error fetching doctors");
-      console.error(err);
-    }
-  };
-
-  // Add new doctor
+  // ➕ Add Doctor
   const addDoctor = async () => {
-    try {
-      if (!doctor.name || !doctor.qualification || !doctor.experience) {
-        alert("Please fill all doctor fields");
-        return;
-      }
+    if (!name || !qualification || !experience || !photo) {
+      alert("All fields required");
+      return;
+    }
 
-      await API.post("/admin/add-doctor", doctor);
-      alert("Doctor added!");
-      setDoctor({ name: "", qualification: "", experience: "" });
-      fetchDoctors(); // refresh doctor list
-    } catch (err) {
-      alert("Error adding doctor");
-      console.error(err);
+    const res = await fetch("http://localhost:5000/api/admin/doctor", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name,
+        qualification,
+        experience,
+        photo // ✅ send image
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message);
+    } else {
+      alert("Doctor added ✅");
+      setName("");
+      setQualification("");
+      setExperience("");
+      setPhoto(""); // reset
+      fetchDoctors();
     }
   };
 
-  // Add new slot
+  // ➕ Add Slot
   const addSlot = async () => {
-    try {
-      if (!slot.doctorId || !slot.slot_date || !slot.slot_time) {
-        alert("Please fill all slot fields");
-        return;
-      }
+    if (!doctorId || !date || !time) {
+      alert("All fields required");
+      return;
+    }
 
-      await API.post("/admin/add-slot", slot);
-      alert("Slot added!");
-      setSlot({ doctorId: "", slot_date: "", slot_time: "" });
-    } catch (err) {
-      alert("Error adding slot");
-      console.error(err);
+    const res = await fetch("http://localhost:5000/api/admin/slot", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        doctor_id: doctorId,
+        slot_date: date,
+        slot_time: time
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message);
+    } else {
+      alert("Slot added ✅");
+      setDate("");
+      setTime("");
     }
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen">
-      <Navbar />
+    <>
+      <AdminNavbar />
 
-      <div className="p-6 grid md:grid-cols-2 gap-6">
+      <div className="min-h-screen bg-gray-100 p-6">
+        <h1 className="text-3xl font-bold mb-6 text-center text-blue-600">
+          Admin Panel
+        </h1>
 
-        {/* Doctors List */}
-        <div className="bg-white p-6 shadow rounded-2xl md:col-span-2">
-          <h2 className="text-xl font-bold mb-4 text-blue-600">
-            All Doctors
-          </h2>
+        <div className="grid md:grid-cols-2 gap-6">
 
-          {doctors.map((doc) => (
-            <div
-              key={doc.id}
-              className="border p-3 mb-2 rounded-lg flex justify-between"
+          {/* ➕ ADD DOCTOR */}
+          <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition">
+            <h2 className="text-xl font-semibold mb-4 text-gray-700">
+              Add Doctor
+            </h2>
+
+            <input
+              className="w-full p-3 border rounded-lg mb-3 focus:ring-2 focus:ring-blue-400"
+              placeholder="Doctor Name"
+              value={name}
+              onChange={e => setName(e.target.value)}
+            />
+
+            <input
+              className="w-full p-3 border rounded-lg mb-3 focus:ring-2 focus:ring-blue-400"
+              placeholder="Qualification"
+              value={qualification}
+              onChange={e => setQualification(e.target.value)}
+            />
+
+            <input
+              className="w-full p-3 border rounded-lg mb-3 focus:ring-2 focus:ring-blue-400"
+              placeholder="Experience (years)"
+              value={experience}
+              onChange={e => setExperience(e.target.value)}
+            />
+
+            {/* ✅ IMAGE URL INPUT */}
+            <input
+              className="w-full p-3 border rounded-lg mb-3 focus:ring-2 focus:ring-blue-400"
+              placeholder="Image URL (doctor photo)"
+              value={photo}
+              onChange={e => setPhoto(e.target.value)}
+            />
+
+            {/* ✅ PREVIEW IMAGE */}
+            {photo && (
+              <img
+                src={photo}
+                alt="preview"
+                className="w-24 h-24 object-cover rounded-full mb-3 border"
+              />
+            )}
+
+            <button
+              onClick={addDoctor}
+              className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition"
             >
-              <div>
-                <p className="font-semibold">{doc.name}</p>
-                <p className="text-sm text-gray-500">
-                  {doc.qualification} • {doc.experience} yrs
-                </p>
-              </div>
-              <span className="text-sm text-green-600">Available</span>
-            </div>
-          ))}
+              Add Doctor
+            </button>
+          </div>
+
+          {/* ➕ ADD SLOT */}
+          <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition">
+            <h2 className="text-xl font-semibold mb-4 text-gray-700">
+              Add Slot
+            </h2>
+
+            <select
+              className="w-full p-3 border rounded-lg mb-3"
+              onChange={e => setDoctorId(e.target.value)}
+            >
+              <option value="">Select Doctor</option>
+              {doctors.map(d => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+
+            <input
+              type="date"
+              className="w-full p-3 border rounded-lg mb-3"
+              min={new Date().toISOString().split("T")[0]}
+              value={date}
+              onChange={e => setDate(e.target.value)}
+            />
+
+            <input
+              type="time"
+              className="w-full p-3 border rounded-lg mb-3"
+              value={time}
+              onChange={e => setTime(e.target.value)}
+            />
+
+            <button
+              onClick={addSlot}
+              className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition"
+            >
+              Add Slot
+            </button>
+          </div>
+
         </div>
-
-        {/* Add Doctor */}
-        <div className="bg-white p-6 shadow rounded-2xl">
-          <h2 className="text-xl font-bold mb-4 text-blue-600">Add Doctor</h2>
-
-          <input
-            placeholder="Name"
-            className="w-full border p-2 mb-3 rounded-lg"
-            value={doctor.name}
-            onChange={(e) => setDoctor({ ...doctor, name: e.target.value })}
-          />
-
-          <input
-            placeholder="Qualification"
-            className="w-full border p-2 mb-3 rounded-lg"
-            value={doctor.qualification}
-            onChange={(e) => setDoctor({ ...doctor, qualification: e.target.value })}
-          />
-
-          <input
-            type="number"
-            placeholder="Experience"
-            className="w-full border p-2 mb-3 rounded-lg"
-            value={doctor.experience}
-            onChange={(e) => setDoctor({ ...doctor, experience: e.target.value })}
-          />
-
-          <button
-            onClick={addDoctor}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg"
-          >
-            Add Doctor
-          </button>
-        </div>
-
-        {/* Add Slot */}
-        <div className="bg-white p-6 shadow rounded-2xl">
-          <h2 className="text-xl font-bold mb-4 text-green-600">Add Slot</h2>
-
-          {/* Select Doctor */}
-          <select
-            className="w-full border p-2 mb-3 rounded-lg"
-            value={slot.doctorId}
-            onChange={(e) => setSlot({ ...slot, doctorId: e.target.value })}
-          >
-            <option value="">Select Doctor</option>
-            {doctors.map((doc) => (
-              <option key={doc.id} value={doc.id}>
-                {doc.name}
-              </option>
-            ))}
-          </select>
-
-          {/* Slot Date */}
-          <input
-            type="date"
-            className="w-full border p-2 mb-3 rounded-lg"
-            value={slot.slot_date}
-            onChange={(e) => setSlot({ ...slot, slot_date: e.target.value })}
-          />
-
-          {/* Slot Time */}
-          <input
-            type="time"
-            className="w-full border p-2 mb-3 rounded-lg"
-            value={slot.slot_time}
-            onChange={(e) => setSlot({ ...slot, slot_time: e.target.value })}
-          />
-
-          <button
-            onClick={addSlot}
-            className="w-full bg-green-600 text-white py-2 rounded-lg"
-          >
-            Add Slot
-          </button>
-        </div>
-
       </div>
-    </div>
+    </>
   );
 }

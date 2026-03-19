@@ -1,9 +1,14 @@
-const express = require("express");
-const router = express.Router();
-const { addSlot, getSlots } = require("../controllers/slotController");
+const router = require("express").Router();
+const {
+  adminLogin,
+  addDoctor,
+  addSlot,
+  getDoctors
+} = require("../controllers/adminController");
 
-// slot routes
-router.post("/add-slot", addSlot);
-router.get("/slots/:doctorId", getSlots);
+router.post("/login", adminLogin);
+router.post("/doctor", addDoctor);
+router.post("/slot", addSlot);
+router.get("/doctors", getDoctors);
 
 module.exports = router;

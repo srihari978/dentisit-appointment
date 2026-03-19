@@ -9,12 +9,27 @@ export default function Navbar() {
   };
 
   return (
-    <div className="flex justify-between p-4 bg-blue-600 text-white">
-      <h2>Dentist App</h2>
-      <div>
-        <Link to="/dashboard" className="mr-4">Home</Link>
-        <Link to="/appointments" className="mr-4">Appointments</Link>
-        <button onClick={logout}>Logout</button>
+    <div className="flex justify-between items-center px-6 py-4 bg-blue-600 text-white shadow-md">
+      
+      {/* Logo */}
+      <h1 className="text-xl font-bold">Dental App</h1>
+
+      {/* Links */}
+      <div className="flex gap-6 items-center">
+        <Link to="/dashboard" className="hover:underline">
+          Dashboard
+        </Link>
+
+        <Link to="/appointments" className="hover:underline">
+          My Appointments
+        </Link>
+
+        <button
+          onClick={logout}
+          className="bg-white text-blue-600 px-4 py-1 rounded hover:bg-gray-100"
+        >
+          Logout
+        </button>
       </div>
     </div>
   );

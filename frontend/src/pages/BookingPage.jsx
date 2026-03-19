@@ -1,36 +1,34 @@
-import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { useNavigate } from "react-router-dom";
+export default function BookingPage() {
+  const location = useLocation();
+  const { availableSlots, doctorName } = location.state || {};
 
-export default function Dashboard() {
-  const [doctors, setDoctors] = useState([]);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    fetch("http://localhost:5000/api/doctors")
-      .then(res => res.json())
-      .then(setDoctors);
-  }, []);
+  if (!availableSlots) {
+    return <p>No slots data available. Please go back and select a doctor.</p>;
+  }
 
   return (
-    <>
-      <Navbar />
-      <div className="p-6 grid grid-cols-3 gap-4">
-        {doctors.map(doc => (
-          <div key={doc.id} className="border p-4">
-            <img src={doc.photo} className="h-32 w-full" />
-            <h2>{doc.name}</h2>
-            <p>{doc.qualification}</p>
-
-            <button
-              onClick={() => navigate(`/book/${doc.id}`)}
-              className="bg-blue-500 text-white px-2 py-1 mt-2"
+    <>   
+    <Navbar/>
+     <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4">Booking for {doctorName}</h2>
+      <div className="flex flex-wrap gap-4">
+        {availableSlots.length === 0 ? (
+          <p>No slots available.</p>
+        ) : (
+          availableSlots.map(slot => (
+            <div
+              key={slot.id}
+              className="border p-4 rounded shadow w-48 text-center"
             >
-              Book Appointment
-            </button>
-          </div>
-        ))}
+              <p>{slot.slot_date}</p>
+              <p>{slot.slot_time}</p>
+            </div>
+          ))
+        )}
       </div>
-    </>
-  );
+    </div>
+ </>
+ );
 }

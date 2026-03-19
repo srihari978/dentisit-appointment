@@ -17,15 +17,18 @@ export default function Register() {
     }
 
     try {
-      await API.post("/auth/register", {
+      const res = await API.post("/auth/register", {
         username: form.username,
         email: form.email,
         password: form.password
       });
 
-      alert("Registered successfully");
+      console.log(res.data);
+      alert("✅ Registered successfully");
+
     } catch (err) {
-      alert("Registration failed");
+      console.log(err.response?.data);
+      alert(err.response?.data?.message || "Registration failed");
     }
   };
 
@@ -38,7 +41,7 @@ export default function Register() {
 
         <input
           placeholder="Username"
-          className="w-full mb-3 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full mb-3 p-2 border rounded-lg"
           onChange={(e) =>
             setForm({ ...form, username: e.target.value })
           }
@@ -46,7 +49,7 @@ export default function Register() {
 
         <input
           placeholder="Email"
-          className="w-full mb-3 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full mb-3 p-2 border rounded-lg"
           onChange={(e) =>
             setForm({ ...form, email: e.target.value })
           }
@@ -55,7 +58,7 @@ export default function Register() {
         <input
           type="password"
           placeholder="Password"
-          className="w-full mb-3 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full mb-3 p-2 border rounded-lg"
           onChange={(e) =>
             setForm({ ...form, password: e.target.value })
           }
@@ -64,7 +67,7 @@ export default function Register() {
         <input
           type="password"
           placeholder="Confirm Password"
-          className="w-full mb-4 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full mb-4 p-2 border rounded-lg"
           onChange={(e) =>
             setForm({ ...form, confirmPassword: e.target.value })
           }
@@ -72,18 +75,14 @@ export default function Register() {
 
         <button
           onClick={register}
-          className="w-full bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition"
+          className="w-full bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700"
         >
           Register
         </button>
 
-        {/* 🔥 LOGIN NAV LINK */}
         <p className="text-center mt-4 text-sm">
           Already have an account?{" "}
-          <Link
-            to="/login"
-            className="text-blue-600 font-semibold hover:underline"
-          >
+          <Link to="/login" className="text-blue-600">
             Login
           </Link>
         </p>

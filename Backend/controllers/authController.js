@@ -2,42 +2,76 @@ const db = require("../config/db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-// REGISTER
+// ✅ REGISTER
 const register = async (req, res) => {
-  const { username, email, password, confirmPassword } = req.body;
+  try {
+    const { username, email, password } = req.body;
 
-  if (password !== confirmPassword)
-    return res.status(400).json({ message: "Passwords do not match" });
+    console.log("Incoming:", req.body);
 
-  const hashed = await bcrypt.hash(password, 10);
+    // check empty fields
+    if (!username || !email || !password) {
+      return res.status(400).json({ message: "All fields required" });
+    }
 
-  const user = await db.query(
-    "INSERT INTO users (username, email, password) VALUES ($1,$2,$3) RETURNING *",
-    [username, email, hashed]
-  );
+    // check existing user
+    const existing = await db.query(
+      "SELECT * FROM users WHERE email=$1",
+      [email]
+    );
 
-  res.json(user.rows[0]);
+    if (existing.rows.length > 0) {
+      return res.status(400).json({ message: "Email already exists" });
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+
+    const result = await db.query(
+      "INSERT INTO users (username, email, password) VALUES ($1,$2,$3) RETURNING *",
+      [username, email, hashed]
+    );
+
+    console.log("Inserted:", result.rows[0]);
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error("REGISTER ERROR:", err);
+    res.status(500).json({ message: err.message });
+  }
 };
 
-// LOGIN
+// ✅ LOGIN
 const login = async (req, res) => {
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-  const user = await db.query("SELECT * FROM users WHERE email=$1", [email]);
+    const user = await db.query(
+      "SELECT * FROM users WHERE email=$1",
+      [email]
+    );
 
-  if (user.rows.length === 0)
-    return res.status(400).json({ message: "User not found" });
+    if (user.rows.length === 0) {
+      return res.status(400).json({ message: "User not found" });
+    }
 
-  const valid = await bcrypt.compare(password, user.rows[0].password);
+    const valid = await bcrypt.compare(password, user.rows[0].password);
 
-  if (!valid) return res.status(400).json({ message: "Invalid password" });
+    if (!valid) {
+      return res.status(400).json({ message: "Invalid password" });
+    }
 
-  const token = jwt.sign(
-    { id: user.rows[0].id },
-    process.env.JWT_SECRET
-  );
+    const token = jwt.sign(
+      { id: user.rows[0].id },
+      process.env.JWT_SECRET
+    );
 
-  res.json({ token });
+    res.json({ token });
+
+  } catch (err) {
+    console.error("LOGIN ERROR:", err);
+    res.status(500).json({ message: "Login failed" });
+  }
 };
 
 module.exports = { register, login };
